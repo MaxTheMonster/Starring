@@ -1,0 +1,26 @@
+{% extends "PeopleRating/base.html" %}
+
+{% block content %}
+
+You would like to rate:
+<form action="">
+  {% csrf_token %}
+  <input type="text" name="name" placeholder="Name...">
+  <input type="submit" name="submit">
+</form>
+<a href="name/">New Name</a>
+
+<div class="people">
+  <ul>
+    {% for person in people %}
+      <li>{{ person.name }} - {{ person.rating }}/5</li>
+      <form action="name/{{ person.slug }}/rate/" role="form" method="post">
+        {% csrf_token %}
+        <label for="rating">Rating /5: </label>
+        <input id="rating" type="integer" name="rating">
+        <button name="submit">Rate</button>
+      </form>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "PeopleRating/base.html" %}
+
+{% block content %}
+{% if error %}
+  <h4 class="error">{{ error }}</h4>
+{% endif %}
+<form role="form" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}
