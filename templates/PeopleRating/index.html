@@ -1,5 +1,5 @@
 {% extends "PeopleRating/base.html" %}
-
+{% load staticfiles %}
 {% block content %}
 
 You would like to rate:
@@ -9,18 +9,70 @@ You would like to rate:
   <input type="submit" name="submit">
 </form>
 <a href="name/">New Name</a>
-
+{% if error %}
+<h4 class="error">{{ error }}</h4>
+{% endif %}
 <div class="people">
   <ul>
     {% for person in people %}
-      <li>{{ person.name }} - {{ person.rating }}/5</li>
-      <form action="name/{{ person.slug }}/rate/" role="form" method="post">
+      <li>{{ person.name }} -
+        <span class="count-{{ forloop.counter }}">{{ person.stars }}</span></li>
+      <form action="/name/{{ person.slug }}/rate/" role="form" method="post">
         {% csrf_token %}
         <label for="rating">Rating /5: </label>
-        <input id="rating" type="integer" name="rating">
+        <div class="c-rating" id="rating-{{ forloop.counter}}"></div>
+        <input id="rating-input-{{ forloop.counter }}" type="integer" name="rating">
         <button name="submit">Rate</button>
       </form>
     {% endfor %}
   </ul>
 </div>
+<script src="{% static "js/rating.min.js" %}"></script>
+<script>
+function post(path, params, method) {
+    method = method || "post"; // Set method to post by default if not specified.
+
+    // The rest of this code assumes you are not using a library.
+    // It can be made less wordy if you use one.
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", path);
+
+    for(var key in params) {
+        if(params.hasOwnProperty(key)) {
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", params[key]);
+
+            form.appendChild(hiddenField);
+         }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+  var maxRating = 5;
+  {% for person in people %}
+    var el_{{ forloop.counter }} = document.querySelector("#rating-{{ forloop.counter }}");
+    var currentRating_{{ forloop.counter }} = Math.round(Number(document.querySelector(".count-{{ forloop.counter }}").innerHTML));
+    console.log(currentRating_{{ forloop.counter }})
+
+
+    var callback = function(rating) {
+      console.log(rating);
+      document.querySelector("#rating-input-{{ forloop.counter }}").value = rating;
+      post('/name/{{ person.slug }}/rate/', {rating: rating});
+     };
+
+    // rating instance
+    var myRating_{{ forloop.counter }} = rating(el_{{ forloop.counter }}, currentRating_{{ forloop.counter }}, maxRating, callback);
+  {% endfor %}
+
+
+
+// current rating, or initial rating
+
+</script>
+
 {% endblock %}

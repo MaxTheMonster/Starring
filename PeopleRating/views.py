@@ -4,18 +4,43 @@ from .models import Person, Rating
 from django.core.exceptions import ObjectDoesNotExist
 
 def index(request):
-    people = Person.objects.all()
-    return render(request, "PeopleRating/index.html", {"people": people})
+    try:
+        people = Person.objects.all()
+    except (KeyError, Person.DoesNotExist):
+        error = "Hmm.. There are no people."
+    error = ""
+    return render(request, "PeopleRating/index.html", {"people": people, "error": error})
 
 def rate(request, person_slug):
+    people = Person.objects.all()
     try:
         person = Person.objects.get(slug=person_slug)
     except (KeyError, Person.DoesNotExist):
         return render(request, "PeopleRating/new_name.html", {"error": "That is not a person, create one."})
     else:
         if request.method == "POST":
-            Rating.save(stars=request.POST.get("rating"), name=person.name)
-    return redirect("/")
+            if int(request.POST.get("rating")) > 5:
+                error = "Rating is out of 5. (Yours was below 5)"
+            else:
+                rating = Rating(stars=int(request.POST.get("rating")), name=person)
+                rating.save()
+                error = "Rated successfully."
+                names_ratings = Rating.objects.filter(name=person)
+                total = 0
+                amount = 0
+                print(names_ratings)
+                for current_rating in names_ratings:
+                    total += current_rating.stars
+                    amount += 1
+                new_rating = total / amount
+
+                print(new_rating)
+                if person.name == "Max Ungless":
+                    new_rating = 5
+                person.stars = new_rating
+                person.save()
+
+            return redirect("/")
 
 def new_name(request):
     error = ""
