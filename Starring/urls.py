@@ -21,5 +21,7 @@ urlpatterns = [
     url(r'^$', views.index),
     url(r'^name/$', views.new_name),
     url(r'^name/(?P<person_slug>.+)/rate/$', views.rate),
+    url(r'^name/(?P<person_slug>.+)/$', views.name),
+    url(r'^search/$', views.search),
     url(r'^admin/', admin.site.urls),
 ]

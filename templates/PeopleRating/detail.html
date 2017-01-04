@@ -1,0 +1,52 @@
+{% extends "PeopleRating/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<section>
+<h2>{{ person.name }}</h2>
+<h4>Rating: {{ person.stars }}</h4>
+<div class="c-rating" id="rating"></div>
+</section>
+  <script src="{% static "js/rating.min.js" %}"></script>
+<script>
+function post(path, params, method) {
+    method = method || "post"; // Set method to post by default if not specified.
+
+    // The rest of this code assumes you are not using a library.
+    // It can be made less wordy if you use one.
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", path);
+
+    for(var key in params) {
+        if(params.hasOwnProperty(key)) {
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", params[key]);
+            form.appendChild(hiddenField);
+         }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+  var maxRating = 5;
+
+  var el = document.querySelector('#rating');
+
+  // current rating, or initial rating
+  var currentRating = Math.floor({{ person.stars }});
+
+  // max rating, i.e. number of stars you want
+  var maxRating = 5;
+
+  // callback to run after setting the rating
+  var callback = function(rating) {
+    post('/name/{{ person.slug }}/rate/', {rating: rating, csrfmiddlewaretoken: '{{ csrf_token }}'});
+  };
+
+  // rating instance
+  var myRating = rating(el, currentRating, maxRating, callback);
+</script>
+{% endblock %}

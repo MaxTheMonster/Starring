@@ -1,22 +1,44 @@
 from django.shortcuts import render, redirect
 from .forms import NameForm
+from django.http import HttpResponse
 from .models import Person, Rating
 from django.core.exceptions import ObjectDoesNotExist
 
 def index(request):
     try:
-        people = Person.objects.all()
+        people = Person.objects.order_by("-stars")
     except (KeyError, Person.DoesNotExist):
         error = "Hmm.. There are no people."
     error = ""
     return render(request, "PeopleRating/index.html", {"people": people, "error": error})
+
+def search(request):
+    error = ""
+    if request.GET.get('name'):
+        query = request.GET["name"]
+        try:
+            person = Person.objects.get(name=query)
+        except (KeyError, Person.DoesNotExist):
+            return render(request, "PeopleRating/name.html", {"error": "That is not a person, create one."})
+    else:
+        error = 'You submitted nothing!'
+    return name("/name/", person.slug)
+
+def name(request, person_slug):
+    error = ""
+    try:
+        person = Person.objects.get(slug=person_slug)
+    except (KeyError, Person.DoesNotExist):
+        error = "That person does not exist."
+        person = ""
+    return render(request, "PeopleRating/detail.html", {"person": person, "error": error})
 
 def rate(request, person_slug):
     people = Person.objects.all()
     try:
         person = Person.objects.get(slug=person_slug)
     except (KeyError, Person.DoesNotExist):
-        return render(request, "PeopleRating/new_name.html", {"error": "That is not a person, create one."})
+        return render(request, "PeopleRating/name.html", {"error": "That is not a person, create one."})
     else:
         if request.method == "POST":
             if int(request.POST.get("rating")) > 5:

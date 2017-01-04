@@ -3,29 +3,31 @@
 {% block content %}
 
 You would like to rate:
-<form action="">
+<form action="/search/" method="get">
   {% csrf_token %}
   <input type="text" name="name" placeholder="Name...">
-  <input type="submit" name="submit">
+  <button type="submit" name="submit">Search</button>
 </form>
-<a href="name/">New Name</a>
+<a id="new_name" href="name/">New Name</a>
 {% if error %}
 <h4 class="error">{{ error }}</h4>
 {% endif %}
 <div class="people">
-  <ul>
+  <ol>
     {% for person in people %}
-      <li>{{ person.name }} -
-        <span class="count-{{ forloop.counter }}">{{ person.stars }}</span></li>
-      <form action="/name/{{ person.slug }}/rate/" role="form" method="post">
+    <div class="person">
+      <li class="person__title">
+        <a class="name" href="/name/{{ person.slug }}/">{{ person.name }}</a> -
+        <span class="count-{{ forloop.counter }}">{{ person.stars }}</span>
+      </li>
+      <form action="/name/{{ person.slug }}/" role="form" method="post">
         {% csrf_token %}
         <label for="rating">Rating /5: </label>
         <div class="c-rating" id="rating-{{ forloop.counter}}"></div>
-        <input id="rating-input-{{ forloop.counter }}" type="integer" name="rating">
-        <button name="submit">Rate</button>
       </form>
+      </div>
     {% endfor %}
-  </ul>
+  </ol>
 </div>
 <script src="{% static "js/rating.min.js" %}"></script>
 <script>
@@ -44,7 +46,6 @@ function post(path, params, method) {
             hiddenField.setAttribute("type", "hidden");
             hiddenField.setAttribute("name", key);
             hiddenField.setAttribute("value", params[key]);
-
             form.appendChild(hiddenField);
          }
     }
@@ -55,14 +56,13 @@ function post(path, params, method) {
   var maxRating = 5;
   {% for person in people %}
     var el_{{ forloop.counter }} = document.querySelector("#rating-{{ forloop.counter }}");
-    var currentRating_{{ forloop.counter }} = Math.round(Number(document.querySelector(".count-{{ forloop.counter }}").innerHTML));
+    var currentRating_{{ forloop.counter }} = Math.floor(Number(document.querySelector(".count-{{ forloop.counter }}").innerHTML));
     console.log(currentRating_{{ forloop.counter }})
 
 
     var callback = function(rating) {
-      console.log(rating);
-      document.querySelector("#rating-input-{{ forloop.counter }}").value = rating;
-      post('/name/{{ person.slug }}/rate/', {rating: rating});
+      post('/name/{{ person.slug }}/rate/', {rating: rating, csrfmiddlewaretoken: '{{ csrf_token }}'});
+
      };
 
     // rating instance
@@ -74,5 +74,6 @@ function post(path, params, method) {
 // current rating, or initial rating
 
 </script>
+
 
 {% endblock %}
